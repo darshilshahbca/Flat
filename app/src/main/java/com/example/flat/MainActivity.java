@@ -102,7 +102,6 @@ public class MainActivity extends AppCompatActivity {
                     //Check if User not exist in Database
                     if (dataSnapshot.child(phone).exists()) {
 
-
                         mDialog.dismiss();
 
                         //Get User Information
