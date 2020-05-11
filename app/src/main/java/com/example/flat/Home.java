@@ -1,6 +1,7 @@
 package com.example.flat;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 
 import com.andremion.counterfab.CounterFab;
@@ -96,6 +97,11 @@ public class Home extends AppCompatActivity {
                 {
                     addBlockDialog();
                 }
+                else if (menuItem.getItemId() == R.id.nav_block)
+                {
+                    Intent viewBlock = new Intent(Home.this, ViewBlock.class);
+                    startActivity(viewBlock);
+                }
 
                 return true;
             }
@@ -149,7 +155,7 @@ public class Home extends AppCompatActivity {
 
                 //String owner, String amount, String ocontact, String renter, String rcontact, boolean inuse
 
-                newBlock =new Block(edtOwnerName.getText().toString(), edtMainAmt.getText().toString(),
+                newBlock =new Block(edtBlockName.getText().toString(), edtOwnerName.getText().toString(), edtMainAmt.getText().toString(),
                         edtOwnerContact.getText().toString(),
                         edtRenter.getText().toString(),
                         edtRenterContact.getText().toString(),

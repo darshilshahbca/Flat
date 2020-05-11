@@ -8,6 +8,7 @@ import com.example.flat.Model.User;
 
 public class Common {
 
+    public static final String DELETE = "Delete";
     public static User currentUser;
 
     public static final String USER_KEY = "User" ;
@@ -26,5 +27,13 @@ public class Common {
             }
         }
         return false;
+    }
+
+    public static String convertCodeToStatus(boolean code) {
+        if(code){
+            return "YES";
+        }else{
+            return "NO";
+        }
     }
 }

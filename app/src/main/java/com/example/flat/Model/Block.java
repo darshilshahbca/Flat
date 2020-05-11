@@ -1,13 +1,15 @@
 package com.example.flat.Model;
 
 public class Block {
-    private String  owner, amount, ocontact, renter, rcontact;
+    private String  name,owner, amount, ocontact, renter, rcontact;
     boolean inuse, onrent;
 
     public Block() {
     }
 
-    public Block(String owner, String amount, String ocontact, String renter, String rcontact, boolean inuse, boolean onrent) {
+
+    public Block(String name, String owner, String amount, String ocontact, String renter, String rcontact, boolean inuse, boolean onrent) {
+        this.name = name;
         this.owner = owner;
         this.amount = amount;
         this.ocontact = ocontact;
@@ -15,6 +17,15 @@ public class Block {
         this.rcontact = rcontact;
         this.inuse = inuse;
         this.onrent = onrent;
+    }
+
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public boolean isOnrent() {

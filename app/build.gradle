@@ -57,6 +57,7 @@ dependencies {
     implementation 'com.stepstone.apprating:app-rating:2.3.1'
     implementation 'com.github.d-max:spots-dialog:1.1@aar'
     implementation 'com.facebook.android:facebook-share:[5,6)'
+    implementation 'com.github.mancj:materialsearchbar:0.8.5'
 
     implementation 'com.github.andremion:counterfab:1.0.1'
 }
