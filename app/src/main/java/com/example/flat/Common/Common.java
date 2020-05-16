@@ -9,6 +9,7 @@ import com.example.flat.Model.User;
 public class Common {
 
     public static final String DELETE = "Delete";
+    public static final String UPDATE = "Update" ;
     public static User currentUser;
 
     public static final String USER_KEY = "User" ;

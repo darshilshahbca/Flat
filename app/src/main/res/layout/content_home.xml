@@ -7,13 +7,21 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/app_bar_home">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_menu"
-        android:scrollbars="vertical"
+    <devs.mulham.horizontalcalendar.HorizontalCalendarView
+        android:id="@+id/calendarView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
+        app:layout_constraintTop_toTopOf="parent"
+        app:textColorSelected="#FFFF" />
+
+    <!--    <androidx.recyclerview.widget.RecyclerView-->
+    <!--        android:id="@+id/recycler_menu"-->
+    <!--        android:scrollbars="vertical"-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="match_parent">-->
 
 
-    </androidx.recyclerview.widget.RecyclerView>
+    <!--    </androidx.recyclerview.widget.RecyclerView>-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

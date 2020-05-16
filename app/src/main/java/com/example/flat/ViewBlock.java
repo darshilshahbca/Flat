@@ -2,10 +2,12 @@ package com.example.flat;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -15,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.Toast;
 
 import com.example.flat.Common.Common;
@@ -23,6 +26,8 @@ import com.example.flat.Model.Block;
 import com.example.flat.ViewHolder.BlockViewHolder;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -31,6 +36,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.mancj.materialsearchbar.MaterialSearchBar;
+import com.rengwuxian.materialedittext.MaterialEditText;
+import com.rey.material.widget.CheckBox;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -51,6 +58,14 @@ public class ViewBlock extends AppCompatActivity {
 
     FirebaseRecyclerAdapter<Block, BlockViewHolder> adapter;
 
+    //Add/Edit Block
+    MaterialEditText edtBlockName, edtOwnerName, edtMainAmt, edtOwnerContact, edtRenter, edtRenterContact;
+    CheckBox ckbInUse, ckbOnRent;
+
+    //Add Block
+    FloatingActionButton fab;
+    Block newBlock;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +79,14 @@ public class ViewBlock extends AppCompatActivity {
         recyclerView.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
+
+        fab = (FloatingActionButton) findViewById(R.id.fab_block);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addBlockDialog();
+            }
+        });
 
         loadAllBlocks();
 
@@ -218,6 +241,13 @@ public class ViewBlock extends AppCompatActivity {
                     holder.txt_renter_contact.setText("Not Applicable.");
                 }
 
+                holder.setItemClickListener(new ItemClickListener() {
+                    @Override
+                    public void onClick(View view, int position, boolean isLongClick) {
+                        //To Fix Crash
+                    }
+                });
+
             }
 
             @NonNull
@@ -233,8 +263,11 @@ public class ViewBlock extends AppCompatActivity {
 
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
-
-       if(item.getTitle().equals(Common.DELETE))
+        if(item.getTitle().equals(Common.UPDATE)){
+            showUpdateDialog(adapter.getRef(item.getOrder()).getKey(), adapter.getItem(item.getOrder()));
+        }
+        
+       else if(item.getTitle().equals(Common.DELETE))
         {
             deleteBlock(adapter.getRef(item.getOrder()).getKey());
         }
@@ -242,8 +275,167 @@ public class ViewBlock extends AppCompatActivity {
         return super.onContextItemSelected(item);
     }
 
+    private void showUpdateDialog(final String key, final Block item) {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(ViewBlock.this);
+        alertDialog.setTitle("Edit Block");
+
+        LayoutInflater inflater = this.getLayoutInflater();
+        View edit_block_layout = inflater.inflate(R.layout.add_new_block, null);
+
+        edtBlockName = edit_block_layout.findViewById(R.id.edtBlockName);
+        edtOwnerName = edit_block_layout.findViewById(R.id.edtOwnerName);
+        edtMainAmt = edit_block_layout.findViewById(R.id.edtMaintainanceAmt);
+        edtRenter = edit_block_layout.findViewById(R.id.edtRenterName);
+        edtOwnerContact = edit_block_layout.findViewById(R.id.edtOwnerContact);
+        edtRenterContact = edit_block_layout.findViewById(R.id.edtRenterContact);
+
+        ckbInUse = edit_block_layout.findViewById(R.id.ckbInUse);
+        ckbOnRent = edit_block_layout.findViewById(R.id.ckbOnRent);
+
+        //Set Default Value for View
+        edtOwnerName.setText(item.getOwner());
+        edtOwnerContact.setText(item.getOcontact());
+        edtMainAmt.setText(item.getAmount());
+        edtBlockName.setText(key);
+        edtBlockName.setEnabled(false);
+        ckbInUse.setChecked(item.isInuse());
+        ckbOnRent.setChecked(item.isOnrent());
+
+        if(ckbOnRent.isChecked())
+        {
+            edtRenter.setVisibility(View.VISIBLE);
+            edtRenterContact.setVisibility(View.VISIBLE);
+            edtRenter.setText(item.getRenter());
+            edtRenterContact.setText(item.getRcontact());
+        }
+
+        ckbOnRent.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    edtRenter.setVisibility(View.VISIBLE);
+                    edtRenterContact.setVisibility(View.VISIBLE);
+                    edtRenter.setText(item.getRenter());
+                    edtRenterContact.setText(item.getRcontact());
+                } else{
+                    edtRenter.setVisibility(View.GONE);
+                    edtRenterContact.setVisibility(View.GONE);
+                    edtRenter.setText("");
+                    edtRenterContact.setText("");
+                }
+
+            }
+        });
+
+        alertDialog.setView(edit_block_layout);
+        alertDialog.setIcon(R.drawable.ic_library_add_black_24dp);
+
+        //Set Button
+        alertDialog.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+
+                    item.setOwner(edtOwnerName.getText().toString());
+                    item.setOcontact(edtOwnerContact.getText().toString());
+                    item.setName(edtBlockName.getText().toString());
+                    item.setAmount(edtMainAmt.getText().toString());
+                    item.setInuse(ckbInUse.isChecked());
+                    item.setOnrent(ckbOnRent.isChecked());
+                    item.setRenter(edtRenter.getText().toString());
+                    item.setRcontact(edtRenterContact.getText().toString());
+
+                    blocks.child(key).setValue(item);
+                Toast.makeText(ViewBlock.this, "Block Edited Successfully!", Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
+        alertDialog.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        alertDialog.show();
+
+    }
+
     private void deleteBlock(String key) {
         blocks.child(key).removeValue();
         Toast.makeText(this, "Block Deleted Successfully!!", Toast.LENGTH_SHORT).show();
+    }
+
+    private void addBlockDialog() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(ViewBlock.this);
+        alertDialog.setTitle("Add new Block");
+
+        LayoutInflater inflater = this.getLayoutInflater();
+        View add_block_layout = inflater.inflate(R.layout.add_new_block, null);
+
+        edtBlockName = add_block_layout.findViewById(R.id.edtBlockName);
+        edtOwnerName = add_block_layout.findViewById(R.id.edtOwnerName);
+        edtMainAmt = add_block_layout.findViewById(R.id.edtMaintainanceAmt);
+        edtRenter = add_block_layout.findViewById(R.id.edtRenterName);
+        edtOwnerContact = add_block_layout.findViewById(R.id.edtOwnerContact);
+        edtRenterContact = add_block_layout.findViewById(R.id.edtRenterContact);
+
+        ckbInUse = add_block_layout.findViewById(R.id.ckbInUse);
+        ckbOnRent = add_block_layout.findViewById(R.id.ckbOnRent);
+
+        ckbOnRent.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    edtRenter.setVisibility(View.VISIBLE);
+                    edtRenterContact.setVisibility(View.VISIBLE);
+                } else{
+                    edtRenter.setVisibility(View.GONE);
+                    edtRenterContact.setVisibility(View.GONE);
+                }
+
+            }
+        });
+
+//        ckbOnRent
+
+
+        alertDialog.setView(add_block_layout);
+        alertDialog.setIcon(R.drawable.ic_library_add_black_24dp);
+
+        //SET Button
+        alertDialog.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+
+                //String owner, String amount, String ocontact, String renter, String rcontact, boolean inuse
+
+                newBlock =new Block(edtBlockName.getText().toString(), edtOwnerName.getText().toString(), edtMainAmt.getText().toString(),
+                        edtOwnerContact.getText().toString(),
+                        edtRenter.getText().toString(),
+                        edtRenterContact.getText().toString(),
+                        ckbInUse.isChecked(),
+                        ckbOnRent.isChecked());
+                //Here, Just new Category
+                if(newBlock!=null){
+
+                    blocks.child(edtBlockName.getText().toString()).setValue(newBlock);
+
+                    Toast.makeText(ViewBlock.this, "New Block : " + edtBlockName.getText().toString() + " was added", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+        });
+
+        alertDialog.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        alertDialog.show();
     }
 }

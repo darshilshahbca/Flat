@@ -24,4 +24,14 @@
         android:id="@+id/recycler_block"
         />
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_block"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_margin="@dimen/fab_margin"
+        android:backgroundTint="@android:color/white"
+        app:srcCompat="@drawable/ic_library_add_black_24dp" />
+
 </RelativeLayout>
