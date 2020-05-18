@@ -55,4 +55,32 @@ public class Common {
         else
             return "Not Applicable";
     }
+
+    public static String convertCodeToMonth(String code){
+        if(code.equals("01")){
+            return "JAN";
+        } else if(code.equals("02")){
+            return "FEB";
+        }else if(code.equals("03")){
+            return "MAR";
+        }else if(code.equals("04")){
+            return "APR";
+        }else if(code.equals("05")){
+            return "MAY";
+        }else if(code.equals("06")){
+            return "JUN";
+        }else if(code.equals("07")){
+            return "JUL";
+        }else if(code.equals("08")){
+            return "AUG";
+        }else if(code.equals("09")){
+            return "SEP";
+        }else if(code.equals("10")){
+            return "OCT";
+        }else if(code.equals("11")){
+            return "NOV";
+        }else {
+            return "DEC";
+        }
+    }
 }

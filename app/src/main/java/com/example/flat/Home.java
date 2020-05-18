@@ -1,7 +1,9 @@
 package com.example.flat;
 
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 
@@ -15,6 +17,7 @@ import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.github.dewinjm.monthyearpicker.MonthYearPickerDialog;
 import com.github.dewinjm.monthyearpicker.MonthYearPickerDialogFragment;
 
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -37,6 +40,8 @@ import com.rey.material.widget.CheckBox;
 import com.squareup.picasso.Picasso;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -68,7 +73,7 @@ public class Home extends AppCompatActivity {
     DatabaseReference blocks;
 
 
-
+    final int SEND_SMS_PERMISSION_REQUEST_CODE = 1;
 
     RecyclerView recyclerView;
     RecyclerView.LayoutManager layoutManager;
@@ -176,7 +181,7 @@ public class Home extends AppCompatActivity {
 
     }
 
-    private void loadPaymentStatusOfBlock(String key) {
+    private void loadPaymentStatusOfBlock(final String key) {
 //        Toast.makeText(this, ""+key, Toast.LENGTH_SHORT).show();
         receipts_slot = database.getReference("Receipt").child(key);
 
@@ -189,9 +194,9 @@ public class Home extends AppCompatActivity {
                         .build();
 
         adapter = new FirebaseRecyclerAdapter<Receipt, ReceiptViewHolder>(options) {
-
-            Integer totalPaid = 0;
-            Integer totalCollected=0;
+//
+//            Integer totalPaid = 0;
+//            Integer totalCollected=0;
 
             @Override
             protected void onBindViewHolder(@NonNull final ReceiptViewHolder viewHolder, final int position, @NonNull final Receipt model) {
@@ -200,10 +205,10 @@ public class Home extends AppCompatActivity {
 
                 final Receipt local = model;
 
-                totalPaid = model.getAmount() + totalPaid;
-                totalCollected = model.getFlatamount() + totalCollected;
-
-                Toast.makeText(Home.this, "Total: " +totalPaid + " Collected: " + totalCollected, Toast.LENGTH_SHORT).show();
+//                totalPaid = model.getAmount() + totalPaid;
+//                totalCollected = model.getFlatamount() + totalCollected;
+//
+//                Toast.makeText(Home.this, "Total: " +totalPaid + " Collected: " + totalCollected, Toast.LENGTH_SHORT).show();
 
 
                 if(model.getStatus().equals("0")){
@@ -225,7 +230,7 @@ public class Home extends AppCompatActivity {
                     @Override
                     public void onClick(View view, int position, boolean isLongClick) {
                         //Fix Crash
-                        showUpdateDialog(adapter.getRef(position).getKey(),adapter.getItem(position));
+                        showUpdateDialog(adapter.getRef(position).getKey(),adapter.getItem(position), key);
                     }
                 });
 
@@ -245,7 +250,7 @@ public class Home extends AppCompatActivity {
 
     }
 
-    private void showUpdateDialog(String key, final Receipt item) {
+    private void showUpdateDialog(final String key, final Receipt item, final String keyMonth) {
         final AlertDialog.Builder alertDialog =
                 new AlertDialog.Builder(Home.this);
         alertDialog.setTitle("Payment Received From");
@@ -273,6 +278,31 @@ public class Home extends AppCompatActivity {
 
                 receipts_slot.child(localKey).setValue(item);
                 adapter.notifyDataSetChanged(); //Add to Update Item Size
+
+                String totalAmount = String.valueOf(item.getAmount() + item.getFlatamount());
+//                Toast.makeText(Home.this, "Total : " +totalAmount, Toast.LENGTH_SHORT).show();
+
+
+                if(item.getStatus().toString().equals("1"))
+                {
+                    //Get Current Date
+                    Date currentDate = Calendar.getInstance().getTime();
+                    SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+                    String formattedDate = df.format(currentDate);
+                    //SMS Manager
+                    if(checkPermission(Manifest.permission.SEND_SMS)){
+                        onSend(item.getReceipt_number(),totalAmount, item.getName(), formattedDate, keyMonth);
+                    } else {
+                        ActivityCompat.requestPermissions(Home.this,
+                                new String[]{Manifest.permission.SEND_SMS}, SEND_SMS_PERMISSION_REQUEST_CODE);
+                    }
+                }
+
+
+
+
+
+
             }
         });
 
@@ -340,6 +370,7 @@ public class Home extends AppCompatActivity {
                      receipt.setStatus("0");
                      receipt.setPayment("0");
                      receipt.setAmount(Integer.parseInt(block.getAmount()) - 100);
+                     receipt.setReceipt_number(block.getOcontact());
                      if(Integer.parseInt(block.getAmount()) - 400 > 0)
                          receipt.setFlatamount(Integer.parseInt(block.getAmount()) - 400);
                      else
@@ -437,6 +468,41 @@ public class Home extends AppCompatActivity {
             return true;
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void onSend(String receipt_number, String totalAmount, String name, String formattedDate, String keyMonth){
+        String phoneNumber = receipt_number;
+
+        String month=keyMonth.substring(0,2);
+        String year = keyMonth.substring(2,6);
+
+//        Toast.makeText(this, ""+month + " and " + year, Toast.LENGTH_SHORT).show();
+
+
+        String smsMessage = "Maintainance amount of Rs."
+                              + totalAmount
+                              + " (Block: 34/" + name + ") received on " + formattedDate +
+                              " for " + Common.convertCodeToMonth(month) + "," + year;
+
+        Log.d("SMS Message", smsMessage);
+
+        if(phoneNumber == null || phoneNumber.length() == 0 ||
+                smsMessage == null || smsMessage.length() == 0){
+            return;
+        }
+
+        if(checkPermission(Manifest.permission.SEND_SMS)){
+            SmsManager smsManager = SmsManager.getDefault();
+            smsManager.sendTextMessage(phoneNumber, null, smsMessage, null, null);
+            Toast.makeText(this, "Message Sent!", Toast.LENGTH_SHORT).show();
+        } else{
+            Toast.makeText(this, "Permission Denied!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public boolean checkPermission(String permission){
+        int check = ContextCompat.checkSelfPermission(this, permission);
+        return (check == PackageManager.PERMISSION_GRANTED);
     }
 
 

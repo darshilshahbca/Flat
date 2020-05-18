@@ -1,21 +1,30 @@
 package com.example.flat.Model;
 
 public class Receipt {
-    String name, receipt_name, status, payment;
+    String name, receipt_name, status, payment, receipt_number;
     int amount,flatamount;
     boolean inuse;
 
     public Receipt() {
     }
 
-    public Receipt(String name, String receipt_name, String status, String payment, int amount, int flatamount, boolean inuse) {
+    public Receipt(String name, String receipt_name, String status, String payment, String receipt_number, int amount, int flatamount, boolean inuse) {
         this.name = name;
         this.receipt_name = receipt_name;
         this.status = status;
         this.payment = payment;
+        this.receipt_number = receipt_number;
         this.amount = amount;
         this.flatamount = flatamount;
         this.inuse = inuse;
+    }
+
+    public String getReceipt_number() {
+        return receipt_number;
+    }
+
+    public void setReceipt_number(String receipt_number) {
+        this.receipt_number = receipt_number;
     }
 
     public int getAmount() {
