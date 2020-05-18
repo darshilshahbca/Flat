@@ -37,4 +37,22 @@ public class Common {
             return "NO";
         }
     }
+
+    public static String convertCodeToStatus2(String code) {
+        if(code.equals("0"))
+            return "Pending";
+        else if(code.equals("1"))
+            return "Paid";
+        else
+            return "Not Applicable";
+    }
+
+    public static String convertCodeToPayment(String code) {
+        if(code.equals("0"))
+            return "Cash";
+        else if(code.equals("1"))
+            return "Paytm/Online";
+        else
+            return "Not Applicable";
+    }
 }
