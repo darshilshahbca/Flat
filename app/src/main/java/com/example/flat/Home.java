@@ -72,7 +72,7 @@ public class Home extends AppCompatActivity {
     DatabaseReference receipts, receipts_slot;
     DatabaseReference blocks;
 
-
+    int finalTotal = 0;
     final int SEND_SMS_PERMISSION_REQUEST_CODE = 1;
 
     RecyclerView recyclerView;
@@ -88,6 +88,9 @@ public class Home extends AppCompatActivity {
     MaterialEditText edtReceiptOwnerName, edtReceiptBlockName, edtReceiptAmt, edtReceiptFlatAmt;
     CheckBox ckbReceiptInUse;
 
+    //Total
+    TextView txtTotalAmount, txtFlatAmount;
+
     DrawerLayout drawerLayout;
     ActionBarDrawerToggle actionBarDrawerToggle;
     FirebaseRecyclerAdapter<Receipt, ReceiptViewHolder> adapter;
@@ -97,7 +100,7 @@ public class Home extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-
+        Log.d("Activity", "onCreate Called");
 //        Toolbar toolbar = findViewById(R.id.toolbar);
 //        toolbar.setTitle("Block");
 //        setSupportActionBar(toolbar);
@@ -110,6 +113,11 @@ public class Home extends AppCompatActivity {
         recyclerView = (RecyclerView)findViewById(R.id.recycler_block_list);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 4));
+
+        txtTotalAmount = (TextView)findViewById(R.id.txtMaintainaceTotal);
+        txtFlatAmount = (TextView) findViewById(R.id.additionalTotal) ;
+
+
 //        layoutManager = new LinearLayoutManager(this);
 //        recyclerView.setLayoutManager(layoutManager);
 
@@ -183,6 +191,12 @@ public class Home extends AppCompatActivity {
 
     private void loadPaymentStatusOfBlock(final String key) {
 //        Toast.makeText(this, ""+key, Toast.LENGTH_SHORT).show();
+
+        txtTotalAmount.setText("0");
+        txtFlatAmount.setText("0");
+
+        Log.d("Activity", "Load Block Receipts for " + key);
+
         receipts_slot = database.getReference("Receipt").child(key);
 
         Query query = database.getReference("Receipt").child(key);
@@ -193,17 +207,43 @@ public class Home extends AppCompatActivity {
                         .setQuery(receipts_slot.orderByChild("name"), Receipt.class)
                         .build();
 
+
         adapter = new FirebaseRecyclerAdapter<Receipt, ReceiptViewHolder>(options) {
-//
-//            Integer totalPaid = 0;
-//            Integer totalCollected=0;
+
+//            private void remove(int position){
+//                adapter.getRef(position).removeValue();
+//            }
 
             @Override
             protected void onBindViewHolder(@NonNull final ReceiptViewHolder viewHolder, final int position, @NonNull final Receipt model) {
                 viewHolder.txtBlockSlot.setText(model.getName());
                 viewHolder.txtStatus.setText(Common.convertCodeToStatus2(model.getStatus()));
 
+
                 final Receipt local = model;
+
+                Log.d("Activity Post", String.valueOf(position));
+                Log.d("Activity Ada", String.valueOf(adapter.getItemCount()-1));
+
+                if(position == adapter.getItemCount()-1) {
+                    int total = 0, flatTotal=0;
+                    for (int i = 0; i < adapter.getItemCount(); i++) {
+                        if (adapter.getItem(i).isInuse() && ( adapter.getItem(i).getStatus().equals("2"))) {
+                            total = total + adapter.getItem(i).getAmount();
+                            flatTotal = flatTotal + adapter.getItem(i).getFlatamount();
+                        }
+                    }
+
+                    txtTotalAmount.setText(String.valueOf(total));
+                    txtFlatAmount.setText(String.valueOf(flatTotal));
+                }
+
+
+
+
+
+//                Log.d("Activity", String.valueOf(total));
+
 
 //                totalPaid = model.getAmount() + totalPaid;
 //                totalCollected = model.getFlatamount() + totalCollected;
@@ -214,6 +254,8 @@ public class Home extends AppCompatActivity {
                 if(model.getStatus().equals("0")){
                     viewHolder.card_block_slot.setCardBackgroundColor(getResources().getColor(android.R.color.white));
                 } else if (model.getStatus().equals("1")){
+                    viewHolder.card_block_slot.setCardBackgroundColor(getResources().getColor(android.R.color.holo_blue_bright));
+                }else if (model.getStatus().equals("2")) {
                     viewHolder.card_block_slot.setCardBackgroundColor(getResources().getColor(android.R.color.holo_orange_dark));
                 }
 
@@ -242,9 +284,12 @@ public class Home extends AppCompatActivity {
                 View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_block, parent, false);
                 return new ReceiptViewHolder(view);
             }
+
+
         };
         adapter.startListening();
         recyclerView.setAdapter(adapter);
+
 
 //        receipts.child(key).add
 
@@ -261,7 +306,7 @@ public class Home extends AppCompatActivity {
         final View view = inflater.inflate(R.layout.block_update_layout, null);
 
         spinner = (MaterialSpinner)view.findViewById(R.id.statusSpinner);
-        spinner.setItems("Pending", "Paid");
+        spinner.setItems("Pending", "Received", "Confirm");
 
         spinnerPayment = (MaterialSpinner)view.findViewById(R.id.statusPayment);
         spinnerPayment.setItems("Cash", "Online/Paytm");
@@ -283,7 +328,7 @@ public class Home extends AppCompatActivity {
 //                Toast.makeText(Home.this, "Total : " +totalAmount, Toast.LENGTH_SHORT).show();
 
 
-                if(item.getStatus().toString().equals("1"))
+                if(item.getStatus().toString().equals("2"))
                 {
                     //Get Current Date
                     Date currentDate = Calendar.getInstance().getTime();
@@ -314,10 +359,12 @@ public class Home extends AppCompatActivity {
         });
 
         alertDialog.show();
-        adapter.notifyDataSetChanged();
     }
 
     private void loadBlockList() {
+
+        Log.d("Activity", "Block List Filled");
+
         blocks.orderByChild("name")
                 .addValueEventListener(new ValueEventListener() {
                     @Override
@@ -398,6 +445,7 @@ public class Home extends AppCompatActivity {
         }
         else if(item.getTitle().equals(Common.DELETE))
         {
+            Log.d("Adapter" , String.valueOf(adapter.getRef(item.getOrder()).getKey()));
             deleteReceipt(adapter.getRef(item.getOrder()).getKey());
         }
 
@@ -457,6 +505,11 @@ public class Home extends AppCompatActivity {
     private void deleteReceipt(String key) {
 //        Toast.makeText(this, ""+key, Toast.LENGTH_SHORT).show();
         receipts_slot.child(key).removeValue();
+//        Log.d("Item", String.valueOf(item));
+
+        adapter.notifyDataSetChanged();
+//        adapter.notifyItemRemoved(1);
+
     }
 
     @Override

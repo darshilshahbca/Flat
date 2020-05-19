@@ -364,6 +364,7 @@ public class ViewBlock extends AppCompatActivity {
 
     private void deleteBlock(String key) {
         blocks.child(key).removeValue();
+        adapter.notifyDataSetChanged();
         Toast.makeText(this, "Block Deleted Successfully!!", Toast.LENGTH_SHORT).show();
     }
 

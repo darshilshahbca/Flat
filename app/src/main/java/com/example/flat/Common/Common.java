@@ -42,7 +42,9 @@ public class Common {
         if(code.equals("0"))
             return "Pending";
         else if(code.equals("1"))
-            return "Paid";
+            return "Received";
+        else if(code.equals("2"))
+            return "Confirm";
         else
             return "Not Applicable";
     }

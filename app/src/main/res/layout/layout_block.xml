@@ -26,7 +26,7 @@
         <TextView
             android:id="@+id/txt_block_slot_description"
             android:text="Not Paid"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textStyle="italic"
             android:gravity="center_horizontal"
             android:layout_width="match_parent"
