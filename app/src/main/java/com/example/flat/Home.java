@@ -10,6 +10,7 @@ import android.os.Bundle;
 import com.example.flat.Common.Common;
 import com.example.flat.Interface.ItemClickListener;
 import com.example.flat.Model.Block;
+import com.example.flat.Model.Expense;
 import com.example.flat.Model.Receipt;
 import com.example.flat.ViewHolder.ReceiptViewHolder;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
@@ -52,6 +53,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -69,7 +71,7 @@ import devs.mulham.horizontalcalendar.utils.HorizontalCalendarListener;
 public class Home extends AppCompatActivity {
 
     FirebaseDatabase database;
-    DatabaseReference receipts, receipts_slot;
+    DatabaseReference receipts, receipts_slot, expenses;
     DatabaseReference blocks;
 
     int finalTotal = 0;
@@ -84,9 +86,17 @@ public class Home extends AppCompatActivity {
 
     TextView txtFullName;
 
+    Expense expense;
+
+    //String Key
+    String key = null;
+
     //Receipt Update Layout
     MaterialEditText edtReceiptOwnerName, edtReceiptBlockName, edtReceiptAmt, edtReceiptFlatAmt;
     CheckBox ckbReceiptInUse;
+
+    //Expense Add Layout
+    MaterialEditText edtExpenseName, edtExpenseAmount;
 
     //Total
     TextView txtTotalAmount, txtFlatAmount;
@@ -96,19 +106,27 @@ public class Home extends AppCompatActivity {
     FirebaseRecyclerAdapter<Receipt, ReceiptViewHolder> adapter;
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        adapter.startListening();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        adapter.stopListening();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
         Log.d("Activity", "onCreate Called");
-//        Toolbar toolbar = findViewById(R.id.toolbar);
-//        toolbar.setTitle("Block");
-//        setSupportActionBar(toolbar);
-
-        //Init Firebase
         database = FirebaseDatabase.getInstance();
         receipts = database.getReference("Receipt");
         blocks = database.getReference("Block");
+        expenses = database.getReference("Expenses");
 
         recyclerView = (RecyclerView)findViewById(R.id.recycler_block_list);
         recyclerView.setHasFixedSize(true);
@@ -116,10 +134,6 @@ public class Home extends AppCompatActivity {
 
         txtTotalAmount = (TextView)findViewById(R.id.txtMaintainaceTotal);
         txtFlatAmount = (TextView) findViewById(R.id.additionalTotal) ;
-
-
-//        layoutManager = new LinearLayoutManager(this);
-//        recyclerView.setLayoutManager(layoutManager);
 
         //Set-Up Calendar
         /* starts before 1 month from now */
@@ -148,7 +162,9 @@ public class Home extends AppCompatActivity {
             public void onDateSelected(Calendar date, int position) {
 //                Toast.makeText(Home.this, ""+date.get(Calendar.MONTH)+""+ date.get(Calendar.YEAR), Toast.LENGTH_SHORT).show();
                 int monthSelected = date.get(Calendar.MONTH) + 1;
-                loadPaymentStatusOfBlock(String.format(new DecimalFormat("00").format(monthSelected))+new DecimalFormat("0000").format(date.get(Calendar.YEAR)));
+
+                key = String.format(new DecimalFormat("00").format(monthSelected)) + new DecimalFormat("0000").format(date.get(Calendar.YEAR));
+                loadPaymentStatusOfBlock(key);
             }
         });
 
@@ -178,15 +194,70 @@ public class Home extends AppCompatActivity {
                 {
 //                    Toast.makeText(Home.this, "Generate Receipt Called...", Toast.LENGTH_SHORT).show();
                     showGenerateReceiptDialog();
+                }  else if (menuItem.getItemId() == R.id.nav_expense_manage)
+                {
+                    Intent expenseManage = new Intent(Home.this, ExpenseManage.class);
+                    startActivity(expenseManage);
+
+                }else if (menuItem.getItemId() == R.id.nav_add_expense){
+                    showUpdateExpenseDialog();
                 }
 
                 return true;
             }
         });
 
+        key = "052020";
+        loadPaymentStatusOfBlock(key); //Default month and year Logic pending
 
-        loadPaymentStatusOfBlock("052020"); //Default month and year Logic pending
+    }
 
+    private void showUpdateExpenseDialog() {
+
+        //Close Drawer
+        drawerLayout.closeDrawer(Gravity.LEFT);
+
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(Home.this);
+        alertDialog.setTitle("Add New Expense");
+
+        LayoutInflater inflater = this.getLayoutInflater();
+        View add_expense_layout = inflater.inflate(R.layout.expense_add_layout, null);
+
+        edtExpenseName = add_expense_layout.findViewById(R.id.edtExpenseName);
+        edtExpenseAmount = add_expense_layout.findViewById(R.id.edtExpenseAmount);
+
+
+        alertDialog.setView(add_expense_layout);
+        alertDialog.setIcon(R.drawable.ic_wb_incandescent_black_24dp);
+
+        //SET Button
+        alertDialog.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+
+                //String edtExpenseName, edtExpenseAmount
+                expense = new Expense(edtExpenseName.getText().toString(), edtExpenseAmount.getText().toString());
+
+                //Here, Just new Expense
+                if(expense!=null){
+
+                    expenses.push().setValue(expense);
+
+                    Toast.makeText(Home.this, "New Expense : " + edtExpenseName.getText().toString() + " was added", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+        });
+
+        alertDialog.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        alertDialog.show();
     }
 
     private void loadPaymentStatusOfBlock(final String key) {
@@ -206,6 +277,8 @@ public class Home extends AppCompatActivity {
                 new FirebaseRecyclerOptions.Builder<Receipt>()
                         .setQuery(receipts_slot.orderByChild("name"), Receipt.class)
                         .build();
+
+        Log.d("HomeAdapter", String.valueOf(options.getSnapshots()));
 
 
         adapter = new FirebaseRecyclerAdapter<Receipt, ReceiptViewHolder>(options) {
@@ -328,20 +401,20 @@ public class Home extends AppCompatActivity {
 //                Toast.makeText(Home.this, "Total : " +totalAmount, Toast.LENGTH_SHORT).show();
 
 
-                if(item.getStatus().toString().equals("2"))
-                {
-                    //Get Current Date
-                    Date currentDate = Calendar.getInstance().getTime();
-                    SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
-                    String formattedDate = df.format(currentDate);
+//                if(item.getStatus().toString().equals("2"))
+//                {
+//                    //Get Current Date
+//                    Date currentDate = Calendar.getInstance().getTime();
+//                    SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+//                    String formattedDate = df.format(currentDate);
                     //SMS Manager
-                    if(checkPermission(Manifest.permission.SEND_SMS)){
-                        onSend(item.getReceipt_number(),totalAmount, item.getName(), formattedDate, keyMonth);
-                    } else {
-                        ActivityCompat.requestPermissions(Home.this,
-                                new String[]{Manifest.permission.SEND_SMS}, SEND_SMS_PERMISSION_REQUEST_CODE);
-                    }
-                }
+//                    if(checkPermission(Manifest.permission.SEND_SMS)){
+//                        onSend(item.getReceipt_number(),totalAmount, item.getName(), formattedDate, keyMonth);
+//                    } else {
+//                        ActivityCompat.requestPermissions(Home.this,
+//                                new String[]{Manifest.permission.SEND_SMS}, SEND_SMS_PERMISSION_REQUEST_CODE);
+//                    }
+//                }
 
 
 
@@ -447,6 +520,7 @@ public class Home extends AppCompatActivity {
         {
             Log.d("Adapter" , String.valueOf(adapter.getRef(item.getOrder()).getKey()));
             deleteReceipt(adapter.getRef(item.getOrder()).getKey());
+            loadPaymentStatusOfBlock(key);
         }
 
         return super.onContextItemSelected(item);
@@ -508,6 +582,7 @@ public class Home extends AppCompatActivity {
 //        Log.d("Item", String.valueOf(item));
 
         adapter.notifyDataSetChanged();
+
 //        adapter.notifyItemRemoved(1);
 
     }
