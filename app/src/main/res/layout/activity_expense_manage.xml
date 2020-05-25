@@ -58,7 +58,7 @@
             android:layout_weight="2"
             android:text="Remained Amount"
             android:textColor="@android:color/white"
-            android:textSize="20sp" />
+            android:textSize="21sp" />
 
         <TextView
             android:id="@+id/txt_remained"
@@ -68,11 +68,22 @@
             android:gravity="right"
             android:text="Rs.0"
             android:textColor="@android:color/white"
-            android:textSize="26sp"
+            android:textSize="24sp"
             android:textStyle="bold" />
 
 
     </LinearLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_expense"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="60dp"
+        android:layout_marginRight="15dp"
+        android:backgroundTint="@android:color/white"
+        app:srcCompat="@drawable/ic_library_add_black_24dp" />
 
 
 </RelativeLayout>

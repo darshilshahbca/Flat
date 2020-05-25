@@ -95,8 +95,7 @@ public class Home extends AppCompatActivity {
     MaterialEditText edtReceiptOwnerName, edtReceiptBlockName, edtReceiptAmt, edtReceiptFlatAmt;
     CheckBox ckbReceiptInUse;
 
-    //Expense Add Layout
-    MaterialEditText edtExpenseName, edtExpenseAmount;
+
 
     //Total
     TextView txtTotalAmount, txtFlatAmount;
@@ -199,8 +198,6 @@ public class Home extends AppCompatActivity {
                     Intent expenseManage = new Intent(Home.this, ExpenseManage.class);
                     startActivity(expenseManage);
 
-                }else if (menuItem.getItemId() == R.id.nav_add_expense){
-                    showUpdateExpenseDialog();
                 }
 
                 return true;
@@ -212,53 +209,7 @@ public class Home extends AppCompatActivity {
 
     }
 
-    private void showUpdateExpenseDialog() {
 
-        //Close Drawer
-        drawerLayout.closeDrawer(Gravity.LEFT);
-
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(Home.this);
-        alertDialog.setTitle("Add New Expense");
-
-        LayoutInflater inflater = this.getLayoutInflater();
-        View add_expense_layout = inflater.inflate(R.layout.expense_add_layout, null);
-
-        edtExpenseName = add_expense_layout.findViewById(R.id.edtExpenseName);
-        edtExpenseAmount = add_expense_layout.findViewById(R.id.edtExpenseAmount);
-
-
-        alertDialog.setView(add_expense_layout);
-        alertDialog.setIcon(R.drawable.ic_wb_incandescent_black_24dp);
-
-        //SET Button
-        alertDialog.setPositiveButton("YES", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-
-                //String edtExpenseName, edtExpenseAmount
-                expense = new Expense(edtExpenseName.getText().toString(), edtExpenseAmount.getText().toString());
-
-                //Here, Just new Expense
-                if(expense!=null){
-
-                    expenses.push().setValue(expense);
-
-                    Toast.makeText(Home.this, "New Expense : " + edtExpenseName.getText().toString() + " was added", Toast.LENGTH_SHORT).show();
-                }
-
-            }
-        });
-
-        alertDialog.setNegativeButton("NO", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-
-        alertDialog.show();
-    }
 
     private void loadPaymentStatusOfBlock(final String key) {
 //        Toast.makeText(this, ""+key, Toast.LENGTH_SHORT).show();

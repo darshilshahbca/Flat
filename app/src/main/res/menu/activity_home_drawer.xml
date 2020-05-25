@@ -18,12 +18,6 @@
 
 
         <item
-            android:id="@+id/nav_add_expense"
-            android:icon="@drawable/ic_wb_incandescent_black_24dp"
-            android:iconTint="@android:color/white"
-            android:title="Add Expense" />
-
-        <item
             android:id="@+id/nav_expense_manage"
             android:icon="@drawable/ic_web_black_24dp"
             android:iconTint="@android:color/white"

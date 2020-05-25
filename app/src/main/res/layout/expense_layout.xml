@@ -5,22 +5,29 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     app:cardElevation="4dp"
-    android:layout_margin="5dp"
-    android:layout_marginBottom="8dp">
+    android:layout_marginTop="5dp">
 
     <LinearLayout
         android:padding="5dp"
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:weightSum="3"
+        android:weightSum="12"
         android:layout_height="wrap_content">
+
+        <ImageView
+            android:src="@drawable/ic_delete_black_24dp"
+            android:id="@+id/btnDeleteExpense"
+            android:gravity="left"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"/>
 
         <TextView
             android:id="@+id/txt_expense_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textSize="18sp"
-            android:layout_weight="2"
+            android:layout_weight="8"
             android:textColor="@android:color/black"
             android:text="Light Bill"/>
 
@@ -28,11 +35,13 @@
             android:id="@+id/txt_expense_amount"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="3"
             android:gravity="right"
             android:text="0"
             android:textColor="@android:color/black"
             android:textSize="18sp" />
+
+
 
 
 

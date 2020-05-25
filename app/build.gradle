@@ -63,4 +63,5 @@ dependencies {
 
     implementation 'com.github.andremion:counterfab:1.0.1'
     implementation 'com.jaredrummler:material-spinner:1.3.1'
+    implementation 'com.jakewharton.timber:timber:4.7.1'
 }

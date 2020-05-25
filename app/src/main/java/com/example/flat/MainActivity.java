@@ -18,19 +18,22 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Logger;
 import com.google.firebase.database.ValueEventListener;
 import com.rengwuxian.materialedittext.MaterialEditText;
 import com.rey.material.widget.CheckBox;
 
 import io.paperdb.Paper;
+import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity {
 
+    //Layout
     EditText edtPhone, edtPassword;
     Button btnSignIn;
-
     CheckBox ckbRemember;
 
+    //Firebase
     FirebaseDatabase database;
     DatabaseReference table_user;
 
@@ -39,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+        //Layout Binding
         edtPassword = (MaterialEditText)findViewById(R.id.edtPassword);
         edtPhone = (MaterialEditText)findViewById(R.id.edtPhone);
         btnSignIn = (Button)findViewById(R.id.btnSignIn);

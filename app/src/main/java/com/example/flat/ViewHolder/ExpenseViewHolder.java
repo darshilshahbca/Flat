@@ -2,6 +2,7 @@ package com.example.flat.ViewHolder;
 
 import android.view.ContextMenu;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,6 +16,7 @@ public class ExpenseViewHolder extends RecyclerView.ViewHolder implements View.O
 
 //
     public TextView txt_expense_name, txt_expense_amount;
+    public ImageView img_delete;
 
     private ItemClickListener itemClickListener;
 
@@ -27,6 +29,7 @@ public class ExpenseViewHolder extends RecyclerView.ViewHolder implements View.O
 
         txt_expense_name = (TextView)itemView.findViewById(R.id.txt_expense_name);
         txt_expense_amount = (TextView)itemView.findViewById(R.id.txt_expense_amount);
+        img_delete = (ImageView) itemView.findViewById(R.id.btnDeleteExpense);
 
 //        itemView.setOnCreateContextMenuListener(this);
         itemView.setOnClickListener(this);
