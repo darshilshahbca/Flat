@@ -28,9 +28,9 @@ public class ReceiptViewHolder extends RecyclerView.ViewHolder implements View.O
     public ReceiptViewHolder(@NonNull View itemView) {
         super(itemView);
 
-        card_block_slot = (CardView)itemView.findViewById(R.id.card_block_slot);
-        txtBlockSlot = (TextView)itemView.findViewById(R.id.txt_block_slot);
-        txtStatus = (TextView)itemView.findViewById(R.id.txt_block_slot_description);
+        card_block_slot = itemView.findViewById(R.id.card_block_slot);
+        txtBlockSlot = itemView.findViewById(R.id.txt_block_slot);
+        txtStatus = itemView.findViewById(R.id.txt_block_slot_description);
 
         itemView.setOnCreateContextMenuListener(this);
         itemView.setOnClickListener(this);

@@ -46,15 +46,11 @@ public class MainActivity extends AppCompatActivity {
         //Layout Binding
         edtPassword = (MaterialEditText)findViewById(R.id.edtPassword);
         edtPhone = (MaterialEditText)findViewById(R.id.edtPhone);
-        btnSignIn = (Button)findViewById(R.id.btnSignIn);
-        ckbRemember = (CheckBox)findViewById(R.id.ckbRemember);
+        btnSignIn = findViewById(R.id.btnSignIn);
+        ckbRemember = findViewById(R.id.ckbRemember);
 
         //Init Pager
         Paper.init(this);
-
-        //Init Firebase
-        database = FirebaseDatabase.getInstance();
-        table_user = database.getReference("User");
 
         btnSignIn.setOnClickListener(new View.OnClickListener() {
             @Override

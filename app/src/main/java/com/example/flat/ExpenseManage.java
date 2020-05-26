@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.DialogInterface;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -64,12 +65,12 @@ public class ExpenseManage extends AppCompatActivity {
 
 
 
-        recyclerExpense = (RecyclerView)findViewById(R.id.recycler_expense);
+        recyclerExpense = findViewById(R.id.recycler_expense);
         recyclerExpense.setHasFixedSize(true);
         layoutManagerExpense = new LinearLayoutManager(this);
         recyclerExpense.setLayoutManager(layoutManagerExpense);
 
-        fab = (FloatingActionButton) findViewById(R.id.fab_expense);
+        fab = findViewById(R.id.fab_expense);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -89,8 +90,8 @@ public class ExpenseManage extends AppCompatActivity {
 
     private void showCollectedRemainedAmount() {
 
-        txt_collectedAmount = (TextView)findViewById(R.id.txt_total_collected);
-        txt_remained_amount = (TextView)findViewById(R.id.txt_remained);
+        txt_collectedAmount = findViewById(R.id.txt_total_collected);
+        txt_remained_amount = findViewById(R.id.txt_remained);
 
         receipts.addValueEventListener(new ValueEventListener() {
             @Override
@@ -112,6 +113,7 @@ public class ExpenseManage extends AppCompatActivity {
 
                 txt_collectedAmount.setText(String.format("Rs.%s", String.valueOf(collectedAmount)));
                 txt_remained_amount.setText(String.format("Rs.%s", String.valueOf(collectedAmount)));
+                txt_remained_amount.setPaintFlags(txt_remained_amount.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
             }
 
             @Override
@@ -203,6 +205,7 @@ public class ExpenseManage extends AppCompatActivity {
 
                     remainedAmount = collectedAmount - expensetotal;
                     txt_remained_amount.setText(String.format("Rs.%s", String.valueOf(remainedAmount)));
+                    txt_remained_amount.setPaintFlags(txt_remained_amount.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
 
 
                 }

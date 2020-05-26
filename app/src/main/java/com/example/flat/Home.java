@@ -70,13 +70,11 @@ import devs.mulham.horizontalcalendar.utils.HorizontalCalendarListener;
 
 public class Home extends AppCompatActivity {
 
+    final int SEND_SMS_PERMISSION_REQUEST_CODE = 1;
     FirebaseDatabase database;
     DatabaseReference receipts, receipts_slot, expenses;
     DatabaseReference blocks;
-
     int finalTotal = 0;
-    final int SEND_SMS_PERMISSION_REQUEST_CODE = 1;
-
     RecyclerView recyclerView;
     RecyclerView.LayoutManager layoutManager;
 
@@ -84,7 +82,7 @@ public class Home extends AppCompatActivity {
 
     MaterialSpinner spinner, spinnerPayment;
 
-    TextView txtFullName;
+    TextView txtFullName, txtTotalAmount, txtFlatAmount;
 
     Expense expense;
 
@@ -95,53 +93,34 @@ public class Home extends AppCompatActivity {
     MaterialEditText edtReceiptOwnerName, edtReceiptBlockName, edtReceiptAmt, edtReceiptFlatAmt;
     CheckBox ckbReceiptInUse;
 
-
-
-    //Total
-    TextView txtTotalAmount, txtFlatAmount;
-
     DrawerLayout drawerLayout;
     ActionBarDrawerToggle actionBarDrawerToggle;
     FirebaseRecyclerAdapter<Receipt, ReceiptViewHolder> adapter;
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        adapter.startListening();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        adapter.stopListening();
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        Log.d("Activity", "onCreate Called");
+        //Firebase
         database = FirebaseDatabase.getInstance();
         receipts = database.getReference("Receipt");
-        blocks = database.getReference("Block");
-        expenses = database.getReference("Expenses");
 
-        recyclerView = (RecyclerView)findViewById(R.id.recycler_block_list);
+        //Layout Binding
+        txtTotalAmount = findViewById(R.id.txtMaintainaceTotal);
+        txtFlatAmount = findViewById(R.id.additionalTotal);
+        recyclerView = findViewById(R.id.recycler_block_list);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 4));
 
-        txtTotalAmount = (TextView)findViewById(R.id.txtMaintainaceTotal);
-        txtFlatAmount = (TextView) findViewById(R.id.additionalTotal) ;
-
         //Set-Up Calendar
-        /* starts before 1 month from now */
+        /* starts before 6 month from now */
         Calendar startDate = Calendar.getInstance();
-        startDate.add(Calendar.MONTH, -3);
+        startDate.add(Calendar.MONTH, -6);
 
-        /* ends after 1 month from now */
+        /* ends after 6 month from now */
         Calendar endDate = Calendar.getInstance();
-        endDate.add(Calendar.MONTH, 3);
+        endDate.add(Calendar.MONTH, 6);
 
         HorizontalCalendar horizontalCalendar = new HorizontalCalendar.Builder(this, R.id.calendarView)
                 .range(startDate, endDate)
@@ -159,100 +138,82 @@ public class Home extends AppCompatActivity {
         horizontalCalendar.setCalendarListener(new HorizontalCalendarListener() {
             @Override
             public void onDateSelected(Calendar date, int position) {
-//                Toast.makeText(Home.this, ""+date.get(Calendar.MONTH)+""+ date.get(Calendar.YEAR), Toast.LENGTH_SHORT).show();
                 int monthSelected = date.get(Calendar.MONTH) + 1;
-
-                key = String.format(new DecimalFormat("00").format(monthSelected)) + new DecimalFormat("0000").format(date.get(Calendar.YEAR));
-                loadPaymentStatusOfBlock(key);
+                int yearSelected = date.get(Calendar.YEAR);
+                loadPaymentStatusOfBlock(Common.getKeyFormat(monthSelected, yearSelected));
             }
         });
 
-
+        //Drawer Layout
         drawerLayout = findViewById(R.id.drawer_layout);
-
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.open, R.string.close);
         drawerLayout.addDrawerListener(actionBarDrawerToggle);
         actionBarDrawerToggle.syncState();
-//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         //load Block List
-        blockList.clear();
         loadBlockList();
-
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
-                if (menuItem.getItemId() == R.id.nav_block)
-                {
+                if (menuItem.getItemId() == R.id.nav_block) {
                     Intent viewBlock = new Intent(Home.this, ViewBlock.class);
                     startActivity(viewBlock);
-                } else if (menuItem.getItemId() == R.id.nav_receipt)
-                {
-//                    Toast.makeText(Home.this, "Generate Receipt Called...", Toast.LENGTH_SHORT).show();
+                } else if (menuItem.getItemId() == R.id.nav_receipt) {
                     showGenerateReceiptDialog();
-                }  else if (menuItem.getItemId() == R.id.nav_expense_manage)
-                {
+                } else if (menuItem.getItemId() == R.id.nav_expense_manage) {
                     Intent expenseManage = new Intent(Home.this, ExpenseManage.class);
                     startActivity(expenseManage);
-
                 }
 
                 return true;
             }
         });
 
-        key = "052020";
-        loadPaymentStatusOfBlock(key); //Default month and year Logic pending
-
+        //Get Current Month & Year to Load Default Receipts
+        loadPaymentStatusOfBlock(Common.getKeyFormat(Common.getCurrentMonth() + 1, Common.getCurrentYear()));
     }
 
-
-
     private void loadPaymentStatusOfBlock(final String key) {
-//        Toast.makeText(this, ""+key, Toast.LENGTH_SHORT).show();
 
+        //Clear Text Amounts on Holiday Calendar Change
         txtTotalAmount.setText("0");
         txtFlatAmount.setText("0");
 
-        Log.d("Activity", "Load Block Receipts for " + key);
-
+        //Load Receipts Slots
         receipts_slot = database.getReference("Receipt").child(key);
-
-        Query query = database.getReference("Receipt").child(key);
-        //Toast.makeText(this, ""+query, Toast.LENGTH_SHORT).show();
-
         FirebaseRecyclerOptions<Receipt> options =
                 new FirebaseRecyclerOptions.Builder<Receipt>()
                         .setQuery(receipts_slot.orderByChild("name"), Receipt.class)
                         .build();
-
-        Log.d("HomeAdapter", String.valueOf(options.getSnapshots()));
-
-
         adapter = new FirebaseRecyclerAdapter<Receipt, ReceiptViewHolder>(options) {
-
-//            private void remove(int position){
-//                adapter.getRef(position).removeValue();
-//            }
 
             @Override
             protected void onBindViewHolder(@NonNull final ReceiptViewHolder viewHolder, final int position, @NonNull final Receipt model) {
                 viewHolder.txtBlockSlot.setText(model.getName());
                 viewHolder.txtStatus.setText(Common.convertCodeToStatus2(model.getStatus()));
 
+                //Slot Color Change based on Pending/Received/Confirm
+                if (model.getStatus().equals("0")) {
+                    viewHolder.card_block_slot.setCardBackgroundColor(getResources().getColor(android.R.color.white));
+                } else if (model.getStatus().equals("1")) {
+                    viewHolder.card_block_slot.setCardBackgroundColor(getResources().getColor(android.R.color.holo_blue_bright));
+                } else if (model.getStatus().equals("2")) {
+                    viewHolder.card_block_slot.setCardBackgroundColor(getResources().getColor(android.R.color.holo_orange_dark));
+                }
 
-                final Receipt local = model;
+                //Slot Color Change in case Not in Use
+                if (!model.isInuse()) {
+                    viewHolder.card_block_slot.setCardBackgroundColor(getResources().getColor(android.R.color.darker_gray));
+                    viewHolder.txtStatus.setText("Close");
+                }
 
-                Log.d("Activity Post", String.valueOf(position));
-                Log.d("Activity Ada", String.valueOf(adapter.getItemCount()-1));
-
-                if(position == adapter.getItemCount()-1) {
-                    int total = 0, flatTotal=0;
+                if (position == adapter.getItemCount() - 1) {
+                    int total = 0, flatTotal = 0;
                     for (int i = 0; i < adapter.getItemCount(); i++) {
-                        if (adapter.getItem(i).isInuse() && ( adapter.getItem(i).getStatus().equals("2"))) {
+                        if (adapter.getItem(i).isInuse() && (adapter.getItem(i).getStatus().equals("2"))) {
                             total = total + adapter.getItem(i).getAmount();
                             flatTotal = flatTotal + adapter.getItem(i).getFlatamount();
                         }
@@ -262,41 +223,10 @@ public class Home extends AppCompatActivity {
                     txtFlatAmount.setText(String.valueOf(flatTotal));
                 }
 
-
-
-
-
-//                Log.d("Activity", String.valueOf(total));
-
-
-//                totalPaid = model.getAmount() + totalPaid;
-//                totalCollected = model.getFlatamount() + totalCollected;
-//
-//                Toast.makeText(Home.this, "Total: " +totalPaid + " Collected: " + totalCollected, Toast.LENGTH_SHORT).show();
-
-
-                if(model.getStatus().equals("0")){
-                    viewHolder.card_block_slot.setCardBackgroundColor(getResources().getColor(android.R.color.white));
-                } else if (model.getStatus().equals("1")){
-                    viewHolder.card_block_slot.setCardBackgroundColor(getResources().getColor(android.R.color.holo_blue_bright));
-                }else if (model.getStatus().equals("2")) {
-                    viewHolder.card_block_slot.setCardBackgroundColor(getResources().getColor(android.R.color.holo_orange_dark));
-                }
-
-                if(model.isInuse())
-                {
-                    viewHolder.card_block_slot.setEnabled(true);
-                } else{
-//                    viewHolder.card_block_slot.setEnabled(false);
-                    viewHolder.card_block_slot.setCardBackgroundColor(getResources().getColor(android.R.color.darker_gray));
-                    viewHolder.txtStatus.setText("Close");
-                }
-
                 viewHolder.setItemClickListener(new ItemClickListener() {
                     @Override
                     public void onClick(View view, int position, boolean isLongClick) {
-                        //Fix Crash
-                        showUpdateDialog(adapter.getRef(position).getKey(),adapter.getItem(position), key);
+                        showReceiptUpdateDialog(adapter.getRef(position).getKey(), adapter.getItem(position), key);
                     }
                 });
 
@@ -313,26 +243,23 @@ public class Home extends AppCompatActivity {
         };
         adapter.startListening();
         recyclerView.setAdapter(adapter);
-
-
-//        receipts.child(key).add
-
+        adapter.notifyDataSetChanged();
     }
 
-    private void showUpdateDialog(final String key, final Receipt item, final String keyMonth) {
+    private void showReceiptUpdateDialog(final String key, final Receipt item, final String keyMonth) {
         final AlertDialog.Builder alertDialog =
                 new AlertDialog.Builder(Home.this);
         alertDialog.setTitle("Payment Received From");
-        alertDialog.setMessage(String.format( item.getReceipt_name()) + " (" + String.format("34/" + item.getName()) + ")");
+        alertDialog.setMessage(String.format(item.getReceipt_name()) + " (" + String.format("34/" + item.getName()) + ")");
 
 
         LayoutInflater inflater = this.getLayoutInflater();
         final View view = inflater.inflate(R.layout.block_update_layout, null);
 
-        spinner = (MaterialSpinner)view.findViewById(R.id.statusSpinner);
+        spinner = view.findViewById(R.id.statusSpinner);
         spinner.setItems("Pending", "Received", "Confirm");
 
-        spinnerPayment = (MaterialSpinner)view.findViewById(R.id.statusPayment);
+        spinnerPayment = view.findViewById(R.id.statusPayment);
         spinnerPayment.setItems("Cash", "Online/Paytm");
 
         alertDialog.setView(view);
@@ -349,27 +276,20 @@ public class Home extends AppCompatActivity {
                 adapter.notifyDataSetChanged(); //Add to Update Item Size
 
                 String totalAmount = String.valueOf(item.getAmount() + item.getFlatamount());
-//                Toast.makeText(Home.this, "Total : " +totalAmount, Toast.LENGTH_SHORT).show();
 
-
-//                if(item.getStatus().toString().equals("2"))
-//                {
-//                    //Get Current Date
-//                    Date currentDate = Calendar.getInstance().getTime();
-//                    SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
-//                    String formattedDate = df.format(currentDate);
-                    //SMS Manager
-//                    if(checkPermission(Manifest.permission.SEND_SMS)){
-//                        onSend(item.getReceipt_number(),totalAmount, item.getName(), formattedDate, keyMonth);
-//                    } else {
-//                        ActivityCompat.requestPermissions(Home.this,
-//                                new String[]{Manifest.permission.SEND_SMS}, SEND_SMS_PERMISSION_REQUEST_CODE);
-//                    }
-//                }
-
-
-
-
+                if (item.getStatus().toString().equals("2")) {
+                    //Get Current Date
+                    Date currentDate = Calendar.getInstance().getTime();
+                    SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+                    String formattedDate = df.format(currentDate);
+//                    SMS Manager
+                    if (checkPermission(Manifest.permission.SEND_SMS)) {
+                        onSend(item.getReceipt_number(), totalAmount, item.getName(), formattedDate, keyMonth);
+                    } else {
+                        ActivityCompat.requestPermissions(Home.this,
+                                new String[]{Manifest.permission.SEND_SMS}, SEND_SMS_PERMISSION_REQUEST_CODE);
+                    }
+                }
 
 
             }
@@ -387,15 +307,14 @@ public class Home extends AppCompatActivity {
 
     private void loadBlockList() {
 
-        Log.d("Activity", "Block List Filled");
+        blocks = database.getReference("Block");
 
         blocks.orderByChild("name")
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         blockList.clear();
-                        for(DataSnapshot postSnapshot: dataSnapshot.getChildren())
-                        {
+                        for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                             Block item = postSnapshot.getValue(Block.class);
                             blockList.add(item);
                         }
@@ -412,45 +331,34 @@ public class Home extends AppCompatActivity {
         //Close Drawer
         drawerLayout.closeDrawer(Gravity.LEFT);
 
-        //Month-Year Picker
-        final int yearSelected;
-        int monthSelected;
-
-        //Set default values
-        Calendar calendar = Calendar.getInstance();
-        yearSelected = calendar.get(Calendar.YEAR);
-        monthSelected = calendar.get(Calendar.MONTH);
-
         MonthYearPickerDialogFragment dialogFragment = MonthYearPickerDialogFragment
-                .getInstance(monthSelected, yearSelected);
+                .getInstance(Common.getCurrentMonth(), Common.getCurrentYear());
 
         dialogFragment.show(getSupportFragmentManager(), null);
 
         dialogFragment.setOnDateSetListener(new MonthYearPickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(int year, int monthOfYear) {
-                monthOfYear = monthOfYear + 1;
-//                Toast.makeText(Home.this, year +""+monthOfYear, Toast.LENGTH_SHORT).show();
 
-                 final String key = String.format(new DecimalFormat("00").format(monthOfYear)+new DecimalFormat("0000").format(year));
+                final String keyGeneration = Common.getKeyFormat(monthOfYear + 1, year);
 
-                 for(Block block: blockList){
-                     Receipt receipt = new Receipt();
-                     receipt.setName(block.getName());
-                     receipt.setReceipt_name(block.getOwner());
-                     receipt.setStatus("0");
-                     receipt.setPayment("0");
-                     receipt.setAmount(Integer.parseInt(block.getAmount()) - 100);
-                     receipt.setReceipt_number(block.getOcontact());
-                     if(Integer.parseInt(block.getAmount()) - 400 > 0)
-                         receipt.setFlatamount(Integer.parseInt(block.getAmount()) - 400);
-                     else
-                         receipt.setFlatamount(100);
+                for (Block block : blockList) {
+                    Receipt receipt = new Receipt();
+                    receipt.setName(block.getName());
+                    receipt.setReceipt_name(block.getOwner());
+                    receipt.setStatus("0");
+                    receipt.setPayment("0");
+                    receipt.setAmount(Integer.parseInt(block.getAmount()) - 100);
+                    receipt.setReceipt_number(block.getOcontact());
+                    if (Integer.parseInt(block.getAmount()) - 400 > 0)
+                        receipt.setFlatamount(Integer.parseInt(block.getAmount()) - 400);
+                    else
+                        receipt.setFlatamount(100);
 
-                     receipt.setInuse(block.isInuse());
+                    receipt.setInuse(block.isInuse());
 
-                     receipts.child(key).push().setValue(receipt);
-                 }
+                    receipts.child(keyGeneration).push().setValue(receipt);
+                }
 
 //                Toast.makeText(Home.this, ""+key, Toast.LENGTH_SHORT).show();
 
@@ -462,14 +370,11 @@ public class Home extends AppCompatActivity {
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
 
-        if(item.getTitle().equals(Common.UPDATE))
-        {
+        if (item.getTitle().equals(Common.UPDATE)) {
 //            showUpdateDialog(adapter.getRef(item.getOrder()).getKey(), adapter.getItem(item.getOrder()));
             showUpdateReceiptDialog(adapter.getRef(item.getOrder()).getKey(), adapter.getItem(item.getOrder()));
-        }
-        else if(item.getTitle().equals(Common.DELETE))
-        {
-            Log.d("Adapter" , String.valueOf(adapter.getRef(item.getOrder()).getKey()));
+        } else if (item.getTitle().equals(Common.DELETE)) {
+            Log.d("Adapter", String.valueOf(adapter.getRef(item.getOrder()).getKey()));
             deleteReceipt(adapter.getRef(item.getOrder()).getKey());
             loadPaymentStatusOfBlock(key);
         }
@@ -485,11 +390,11 @@ public class Home extends AppCompatActivity {
         LayoutInflater inflater = this.getLayoutInflater();
         final View view = inflater.inflate(R.layout.receipt_update_layout, null);
 
-        edtReceiptOwnerName = (MaterialEditText) view.findViewById(R.id.edtReceiptOwnerName);
-        edtReceiptBlockName = (MaterialEditText) view.findViewById(R.id.edtReceiptBlockName);
-        edtReceiptAmt = (MaterialEditText) view.findViewById(R.id.edtReceiptAmt);
-        edtReceiptFlatAmt = (MaterialEditText) view.findViewById(R.id.edtReceiptFlatAmt);
-        ckbReceiptInUse = (CheckBox) view.findViewById(R.id.ckbReceiptInUse);
+        edtReceiptOwnerName = view.findViewById(R.id.edtReceiptOwnerName);
+        edtReceiptBlockName = view.findViewById(R.id.edtReceiptBlockName);
+        edtReceiptAmt = view.findViewById(R.id.edtReceiptAmt);
+        edtReceiptFlatAmt = view.findViewById(R.id.edtReceiptFlatAmt);
+        ckbReceiptInUse = view.findViewById(R.id.ckbReceiptInUse);
 
         edtReceiptOwnerName.setText(item.getReceipt_name());
         edtReceiptAmt.setText(String.valueOf(item.getAmount()));
@@ -540,50 +445,56 @@ public class Home extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if(item.getItemId() == R.id.refresh){
+        if (item.getItemId() == R.id.refresh) {
         }
 
-        if(actionBarDrawerToggle.onOptionsItemSelected(item))
+        if (actionBarDrawerToggle.onOptionsItemSelected(item))
             return true;
 
         return super.onOptionsItemSelected(item);
     }
 
-    public void onSend(String receipt_number, String totalAmount, String name, String formattedDate, String keyMonth){
+    public void onSend(String receipt_number, String totalAmount, String name, String formattedDate, String keyMonth) {
         String phoneNumber = receipt_number;
 
-        String month=keyMonth.substring(0,2);
-        String year = keyMonth.substring(2,6);
-
-//        Toast.makeText(this, ""+month + " and " + year, Toast.LENGTH_SHORT).show();
-
+        String month = keyMonth.substring(0, 2);
+        String year = keyMonth.substring(2, 6);
 
         String smsMessage = "Maintainance amount of Rs."
-                              + totalAmount
-                              + " (Block: 34/" + name + ") received on " + formattedDate +
-                              " for " + Common.convertCodeToMonth(month) + "," + year;
+                + totalAmount
+                + " (Block: 34/" + name + ") received on " + formattedDate +
+                " for " + Common.convertCodeToMonth(month) + "," + year;
 
-        Log.d("SMS Message", smsMessage);
-
-        if(phoneNumber == null || phoneNumber.length() == 0 ||
-                smsMessage == null || smsMessage.length() == 0){
+        if (phoneNumber == null || phoneNumber.length() == 0 ||
+                smsMessage == null || smsMessage.length() == 0) {
             return;
         }
 
-        if(checkPermission(Manifest.permission.SEND_SMS)){
+        if (checkPermission(Manifest.permission.SEND_SMS)) {
             SmsManager smsManager = SmsManager.getDefault();
             smsManager.sendTextMessage(phoneNumber, null, smsMessage, null, null);
             Toast.makeText(this, "Message Sent!", Toast.LENGTH_SHORT).show();
-        } else{
+        } else {
             Toast.makeText(this, "Permission Denied!", Toast.LENGTH_SHORT).show();
         }
     }
 
-    public boolean checkPermission(String permission){
+    public boolean checkPermission(String permission) {
         int check = ContextCompat.checkSelfPermission(this, permission);
         return (check == PackageManager.PERMISSION_GRANTED);
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        adapter.startListening();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        adapter.stopListening();
+    }
 
 
 }

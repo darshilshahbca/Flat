@@ -31,8 +31,7 @@
             android:gravity="right"
             android:text="Rs.0"
             android:textColor="@android:color/white"
-            android:textSize="24sp"
-            android:textStyle="bold" />
+            android:textSize="22sp" />
 
 
     </LinearLayout>
@@ -66,7 +65,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="right"
-            android:text="Rs.0"
+            android:text="@string/remained"
             android:textColor="@android:color/white"
             android:textSize="24sp"
             android:textStyle="bold" />

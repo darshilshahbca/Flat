@@ -27,9 +27,9 @@ public class ExpenseViewHolder extends RecyclerView.ViewHolder implements View.O
     public ExpenseViewHolder(@NonNull View itemView) {
         super(itemView);
 
-        txt_expense_name = (TextView)itemView.findViewById(R.id.txt_expense_name);
-        txt_expense_amount = (TextView)itemView.findViewById(R.id.txt_expense_amount);
-        img_delete = (ImageView) itemView.findViewById(R.id.btnDeleteExpense);
+        txt_expense_name = itemView.findViewById(R.id.txt_expense_name);
+        txt_expense_amount = itemView.findViewById(R.id.txt_expense_amount);
+        img_delete = itemView.findViewById(R.id.btnDeleteExpense);
 
 //        itemView.setOnCreateContextMenuListener(this);
         itemView.setOnClickListener(this);

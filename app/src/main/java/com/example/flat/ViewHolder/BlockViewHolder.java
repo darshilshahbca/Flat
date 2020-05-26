@@ -28,13 +28,13 @@ public class BlockViewHolder extends RecyclerView.ViewHolder implements View.OnC
     public BlockViewHolder(@NonNull View itemView) {
         super(itemView);
 
-        txt_block_name = (TextView)itemView.findViewById(R.id.txt_block_name);
-        txt_owner_contact = (TextView)itemView.findViewById(R.id.txt_owner_contact);
-        txt_inUse = (TextView)itemView.findViewById(R.id.txt_inUse);
-        txt_onRent = (TextView)itemView.findViewById(R.id.txt_onRent);
-        txt_renter_name = (TextView)itemView.findViewById(R.id.txt_renter_name);
-        txt_renter_contact = (TextView)itemView.findViewById(R.id.txt_renter_contact);
-        amount = (TextView)itemView.findViewById(R.id.txt_maintenance) ;
+        txt_block_name = itemView.findViewById(R.id.txt_block_name);
+        txt_owner_contact = itemView.findViewById(R.id.txt_owner_contact);
+        txt_inUse = itemView.findViewById(R.id.txt_inUse);
+        txt_onRent = itemView.findViewById(R.id.txt_onRent);
+        txt_renter_name = itemView.findViewById(R.id.txt_renter_name);
+        txt_renter_contact = itemView.findViewById(R.id.txt_renter_contact);
+        amount = itemView.findViewById(R.id.txt_maintenance);
 
         itemView.setOnCreateContextMenuListener(this);
         itemView.setOnClickListener(this);

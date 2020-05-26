@@ -6,6 +6,9 @@ import android.net.NetworkInfo;
 
 import com.example.flat.Model.User;
 
+import java.text.DecimalFormat;
+import java.util.Calendar;
+
 public class Common {
 
     public static final String DELETE = "Delete";
@@ -84,5 +87,22 @@ public class Common {
         }else {
             return "DEC";
         }
+    }
+
+    public static String getKeyFormat(int thisMonth, int thisYear) {
+        String key = String.format(new DecimalFormat("00").format(thisMonth)) + new DecimalFormat("0000").format(thisYear);
+        return key;
+    }
+
+    public static int getCurrentYear() {
+        Calendar calendar = Calendar.getInstance();
+        int currentYear = calendar.get(Calendar.YEAR);
+        return currentYear;
+    }
+
+    public static int getCurrentMonth() {
+        Calendar calendar = Calendar.getInstance();
+        int currentMonth = calendar.get(Calendar.MONTH);
+        return currentMonth;
     }
 }

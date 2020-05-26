@@ -75,12 +75,12 @@ public class ViewBlock extends AppCompatActivity {
         database = FirebaseDatabase.getInstance();
         blocks = database.getReference("Block");
 
-        recyclerView = (RecyclerView)findViewById(R.id.recycler_block);
+        recyclerView = findViewById(R.id.recycler_block);
         recyclerView.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
 
-        fab = (FloatingActionButton) findViewById(R.id.fab_block);
+        fab = findViewById(R.id.fab_block);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -91,7 +91,7 @@ public class ViewBlock extends AppCompatActivity {
         loadAllBlocks();
 
         //Search
-        materialSearchBar = (MaterialSearchBar)findViewById(R.id.searchBar);
+        materialSearchBar = findViewById(R.id.searchBar);
         materialSearchBar.setHint("Search Block");
         loadSuggest(); //Write function to load suggest from Firebase
         materialSearchBar.setLastSuggestions(suggestList);
