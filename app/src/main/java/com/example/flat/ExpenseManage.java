@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.flat.Interface.ItemClickListener;
 import com.example.flat.Model.Expense;
 import com.example.flat.Model.Receipt;
 import com.example.flat.ViewHolder.ExpenseViewHolder;
@@ -214,6 +215,13 @@ public class ExpenseManage extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         deleteExpense(expenseAdapter.getRef(position).getKey());
+                    }
+                });
+
+                holder.setItemClickListener(new ItemClickListener() {
+                    @Override
+                    public void onClick(View view, int position, boolean isLongClick) {
+                        //To Fix Crash
                     }
                 });
             }

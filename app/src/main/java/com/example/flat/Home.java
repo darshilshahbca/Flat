@@ -173,7 +173,8 @@ public class Home extends AppCompatActivity {
         });
 
         //Get Current Month & Year to Load Default Receipts
-        loadPaymentStatusOfBlock(Common.getKeyFormat(Common.getCurrentMonth() + 1, Common.getCurrentYear()));
+        key = Common.getKeyFormat(Common.getCurrentMonth() + 1, Common.getCurrentYear());
+        loadPaymentStatusOfBlock(key);
     }
 
     private void loadPaymentStatusOfBlock(final String key) {
@@ -374,7 +375,6 @@ public class Home extends AppCompatActivity {
 //            showUpdateDialog(adapter.getRef(item.getOrder()).getKey(), adapter.getItem(item.getOrder()));
             showUpdateReceiptDialog(adapter.getRef(item.getOrder()).getKey(), adapter.getItem(item.getOrder()));
         } else if (item.getTitle().equals(Common.DELETE)) {
-            Log.d("Adapter", String.valueOf(adapter.getRef(item.getOrder()).getKey()));
             deleteReceipt(adapter.getRef(item.getOrder()).getKey());
             loadPaymentStatusOfBlock(key);
         }
